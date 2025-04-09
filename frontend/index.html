@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Whisper Audio Transcription</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Audio Transcription Service</h1>
+      <p class="description">
+        Upload an audio file (1-2 hour support) and get its transcription using
+        Whisper AI
+      </p>
+
+      <div class="upload-container">
+        <form id="upload-form" enctype="multipart/form-data">
+          <div class="file-input-container">
+            <input
+              type="file"
+              id="audio-file"
+              name="audio"
+              accept="audio/*"
+              required
+            />
+            <label for="audio-file" class="file-label">Choose Audio File</label>
+            <span id="file-name">No file selected</span>
+          </div>
+
+          <button type="submit" id="upload-btn">Transcribe Audio</button>
+        </form>
+      </div>
+
+      <div
+        class="progress-container"
+        id="progress-container"
+        style="display: none"
+      >
+        <div class="progress-bar" id="progress-bar">
+          <div class="progress" id="progress"></div>
+        </div>
+        <p id="status-message">Processing...</p>
+      </div>
+
+      <div class="result-container" id="result-container" style="display: none">
+        <h2>Transcription</h2>
+        <div id="processing-info">
+          <p>
+            <strong>Note:</strong> Large audio files (1-2 hours) may take
+            significant time to process.
+          </p>
+        </div>
+        <div class="result-actions">
+          <button id="copy-btn">Copy to Clipboard</button>
+          <button id="download-btn">Download as Text</button>
+        </div>
+        <div class="transcription" id="transcription"></div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
