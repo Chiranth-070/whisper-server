@@ -7,9 +7,7 @@ require("dotenv").config();
 // Update to use whisper-cli instead of main
 const whisperCppPath = process.env.WHISPER_CPP_PATH;
 const whisperExecutable = path.join(whisperCppPath, "build/bin/whisper-cli"); // Changed from main to whisper-cli
-const modelPath = path.resolve(
-  process.env.MODEL_PATH || "./models/ggml-base.en.bin"
-);
+const modelPath = process.env.MODEL_PATH;
 
 // Check if the executable exists
 if (!fs.existsSync(whisperExecutable)) {
