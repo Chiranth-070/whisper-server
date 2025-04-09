@@ -1,2 +1,3 @@
 whisper.cpp/
 backend/node_modules/
+backend/models/ggml-base.en.bin
