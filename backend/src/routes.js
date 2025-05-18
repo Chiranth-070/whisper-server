@@ -33,9 +33,12 @@ const upload = multer({
       "audio/ogg",
       "audio/x-m4a",
       "audio/webm",
+      "video/webm",  // Some WebM files might be detected as video/webm
       "audio/flac",
     ];
 
+    console.log("Uploaded file MIME type:", file.mimetype);
+    
     if (allowedMimeTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
@@ -76,19 +79,27 @@ router.post("/transcribe", upload.single("audio"), async (req, res) => {
     try {
       const transcription = await transcribeAudio(audioFilePath);
 
-      // Send completed transcription
-      res.write(
-        `data: {"status": "complete", "transcription": ${JSON.stringify(
-          transcription
-        )}}\n\n`
-      );
-      res.end();
+      // Check if response is still writable before writing to it
+      if (!res.writableEnded) {
+        // Send completed transcription
+        res.write(
+          `data: {"status": "complete", "transcription": ${JSON.stringify(
+            transcription
+          )}}\n\n`
+        );
+        
+        // End the response here and don't try to write to it again
+        res.end();
+      }
 
-      // Clean up the uploaded file
+      // Clean up the uploaded file - this should happen after ending the response
       fs.removeSync(audioFilePath);
     } catch (error) {
-      res.write(`data: {"status": "error", "message": "${error.message}"}\n\n`);
-      res.end();
+      // Only write and end if the response hasn't been ended yet
+      if (!res.writableEnded) {
+        res.write(`data: {"status": "error", "message": "${error.message}"}\n\n`);
+        res.end();
+      }
     }
   } catch (error) {
     console.error("Error in transcribe endpoint:", error);

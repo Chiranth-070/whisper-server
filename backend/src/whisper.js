@@ -1,4 +1,5 @@
 const { execSync } = require("child_process");
+const util = require("util");
 const path = require("path");
 const fs = require("fs-extra");
 const tmp = require("tmp");
@@ -31,16 +32,40 @@ if (!fs.existsSync(modelPath)) {
  */
 async function transcribeAudio(audioFilePath) {
   try {
-    const outputFilePath =
-      "/media/chiranth/Data/miniproject/whisper-server/backend/transcriptions/temp.txt";
+    // Create transcriptions directory if it doesn't exist
+    const transcriptionsDir = path.join(__dirname, "../transcriptions");
+    fs.ensureDirSync(transcriptionsDir);
+    
+    // Use a path within the Docker container
+    const outputFilePath = path.join(transcriptionsDir, "temp.txt");
+    
+    // Check if the file is a WebM file and convert it to WAV if needed
+    let fileToProcess = audioFilePath;
+    const fileExt = path.extname(audioFilePath).toLowerCase();
+    
+    if (fileExt === '.webm') {
+      console.log('WebM file detected, converting to WAV format...');
+      const wavFilePath = `${audioFilePath}.wav`;
+      
+      // Convert WebM to WAV using FFmpeg
+      try {
+        execSync(`ffmpeg -i "${audioFilePath}" -ar 16000 -ac 1 -c:a pcm_s16le "${wavFilePath}"`, {
+          stdio: 'inherit'
+        });
+        console.log(`Successfully converted WebM to WAV: ${wavFilePath}`);
+        fileToProcess = wavFilePath;
+      } catch (conversionError) {
+        console.error('Error converting WebM to WAV:', conversionError);
+        throw new Error(`Failed to convert WebM file: ${conversionError.message}`);
+      }
+    }
 
-    console.log(`Transcribing audio file: ${audioFilePath}`);
+    console.log(`Transcribing audio file: ${fileToProcess}`);
     console.log(`Using model: ${modelPath}`);
     console.log(`Using whisper executable: ${whisperExecutable}`);
 
     // Command to run whisper.cpp with the audio file
-    // Note: whisper-cli may have slightly different command line options
-    const command = `${whisperExecutable} -m ${modelPath} -f ${audioFilePath} > ${outputFilePath} `;
+    const command = `${whisperExecutable} -m ${modelPath} -f "${fileToProcess}" > "${outputFilePath}"`;
 
     console.log(`Executing command: ${command}`);
 
@@ -49,12 +74,21 @@ async function transcribeAudio(audioFilePath) {
 
     // Read the transcription from the output file
     const transcription = fs.readFileSync(outputFilePath, "utf8");
-    // console.log(transcription)
 
     // Clean up the temporary file
     fs.writeFile(outputFilePath, "", function () {
       console.log("done");
     });
+    
+    // Clean up the temporary WAV file if we created one
+    if (fileToProcess !== audioFilePath) {
+      try {
+        fs.unlinkSync(fileToProcess);
+        console.log(`Removed temporary WAV file: ${fileToProcess}`);
+      } catch (cleanupError) {
+        console.error(`Error removing temporary WAV file: ${cleanupError}`);
+      }
+    }
 
     return transcription;
   } catch (error) {
