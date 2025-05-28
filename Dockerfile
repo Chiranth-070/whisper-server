@@ -42,7 +42,7 @@ RUN npm install
 RUN mkdir -p uploads
 
 # Create .env file with correct paths
-RUN echo "PORT=3000\n\
+RUN echo "PORT=8000\n\
 MODEL_PATH=/app/whisper.cpp/models/ggml-base.en.bin\n\
 WHISPER_CPP_PATH=/app/whisper.cpp\n\
 WHISPER_EXECUTABLE=/app/whisper.cpp/build/bin/whisper-cli" > .env
@@ -52,7 +52,7 @@ WHISPER_EXECUTABLE=/app/whisper.cpp/build/bin/whisper-cli" > .env
 RUN mkdir -p /app/frontend
 
 # Expose the port
-EXPOSE 3000
+EXPOSE 8000
 
 # Start the server
 WORKDIR /app/backend
