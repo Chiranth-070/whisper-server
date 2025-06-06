@@ -3,6 +3,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs-extra");
 const { transcribeAudio } = require("./whisper");
+const { default: axios } = require("axios");
 
 const router = express.Router();
 
@@ -33,12 +34,12 @@ const upload = multer({
       "audio/ogg",
       "audio/x-m4a",
       "audio/webm",
-      "video/webm",  // Some WebM files might be detected as video/webm
+      "video/webm", // Some WebM files might be detected as video/webm
       "audio/flac",
     ];
 
     console.log("Uploaded file MIME type:", file.mimetype);
-    
+
     if (allowedMimeTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
@@ -60,6 +61,8 @@ router.post("/transcribe", upload.single("audio"), async (req, res) => {
     }
 
     const audioFilePath = req.file.path;
+    const username = req.body.username;
+    console.log(`Username: ${username}`);
     console.log(
       `Received audio file: ${req.file.originalname}, size: ${req.file.size} bytes`
     );
@@ -87,7 +90,17 @@ router.post("/transcribe", upload.single("audio"), async (req, res) => {
             transcription
           )}}\n\n`
         );
-        
+
+        const axiosResponse = axios.post(
+          "https://briefly-ai-ten.vercel.app/api/meet",
+          {
+            username: username,
+            transcript: transcription,
+          }
+        );
+
+        console.log(axiosResponse.data);
+
         // End the response here and don't try to write to it again
         res.end();
       }
@@ -97,7 +110,9 @@ router.post("/transcribe", upload.single("audio"), async (req, res) => {
     } catch (error) {
       // Only write and end if the response hasn't been ended yet
       if (!res.writableEnded) {
-        res.write(`data: {"status": "error", "message": "${error.message}"}\n\n`);
+        res.write(
+          `data: {"status": "error", "message": "${error.message}"}\n\n`
+        );
         res.end();
       }
     }
