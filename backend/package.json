@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/package.json",
   "name": "whisper-transcription-backend",
   "version": "1.0.0",
   "description": "Backend for audio transcription using whisper.cpp",
@@ -17,6 +18,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "axios": "^1.9.0",
     "bindings": "^1.5.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
